@@ -65,7 +65,7 @@ distance x1 y1 x2 y2 = sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1))
 -- Ps. have a look at the built in function "even"
 
 eeny :: Integer -> String
-eeny x = if even(x) then "eeny" else "meeny"
+eeny x = if even x then "eeny" else "meeny"
 
 ------------------------------------------------------------------------------
 -- Ex 6: here's the function checkPassword from the course material.
@@ -138,7 +138,4 @@ power n k = n * power n (k - 1)
 
 ilog3 :: Integer -> Integer
 ilog3 0 = 0
-ilog3 1 = 1
-ilog3 2 = 1
-
-ilog3 x = x - ilog3 (div x 3)
+ilog3 x = 1 + ilog3 (div x 3)
