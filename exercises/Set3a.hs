@@ -163,7 +163,11 @@ while check update value = if check value then while check update (update value)
 --   whileRight (step 1000) 3  ==> 1536
 
 whileRight :: (a -> Either b a) -> a -> b
-whileRight f x = todo
+whileRight f x = whileRight' f (f x)
+
+whileRight' :: (a -> Either b a) -> Either b a -> b
+whileRight' f (Left x) = x
+whileRight' f (Right x) = whileRight' f (f x)
 
 -- for the whileRight examples:
 -- step k x doubles x if it's less than k
@@ -182,7 +186,7 @@ step k x = if x<k then Right (2*x) else Left x
 -- Hint! This is a great use for list comprehensions
 
 joinToLength :: Int -> [String] -> [String]
-joinToLength = todo
+joinToLength n strings = [ whole | first <- strings, last <- strings, let whole = first ++ last, length whole == n]
 
 ------------------------------------------------------------------------------
 -- Ex 10: implement the operator +|+ that returns a list with the first
@@ -196,6 +200,11 @@ joinToLength = todo
 --   [] +|+ [True]        ==> [True]
 --   [] +|+ []            ==> []
 
+(+|+) :: [a] -> [a] -> [a]
+[] +|+ [] = []
+[] +|+ y = [head y]
+x +|+ [] = [head x]
+x +|+ y = head x : [head y]
 
 ------------------------------------------------------------------------------
 -- Ex 11: remember the lectureParticipants example from Lecture 2? We
@@ -212,7 +221,9 @@ joinToLength = todo
 --   sumRights [Left "bad!", Left "missing"]         ==>  0
 
 sumRights :: [Either a Int] -> Int
-sumRights = todo
+sumRights l = sum (map mapValid l)
+  where mapValid (Right i) = i
+        mapValid (Left str) = 0
 
 ------------------------------------------------------------------------------
 -- Ex 12: recall the binary function composition operation
@@ -228,7 +239,9 @@ sumRights = todo
 --   multiCompose [(3*), (2^), (+1)] 0 ==> 6
 --   multiCompose [(+1), (2^), (3*)] 0 ==> 2
 
-multiCompose fs = todo
+multiCompose :: [a -> a] -> a -> a
+multiCompose [] = id 
+multiCompose fs = foldr (.) id fs 
 
 ------------------------------------------------------------------------------
 -- Ex 13: let's consider another way to compose multiple functions. Given
@@ -247,7 +260,10 @@ multiCompose fs = todo
 --   multiApp reverse [tail, take 2, reverse] "foo" ==> ["oof","fo","oo"]
 --   multiApp concat [take 3, reverse] "race" ==> "racecar"
 
-multiApp = todo
+multiApp f gs x = f (multiApp' gs x)
+
+multiApp' :: [t -> b] -> t -> [b]
+multiApp' gs x =  map (\g -> g x) gs
 
 ------------------------------------------------------------------------------
 -- Ex 14: in this exercise you get to implement an interpreter for a
@@ -282,4 +298,13 @@ multiApp = todo
 -- function, the surprise won't work.
 
 interpreter :: [String] -> [String]
-interpreter commands = todo
+interpreter commands = reverse (interpreter' commands 0 0 [])
+
+interpreter' :: [String] -> Int -> Int -> [String] ->[String]
+interpreter' [] _ _ result = result
+interpreter' ("up":cs) x y result = interpreter' cs x (y + 1) result
+interpreter' ("down":cs) x y result = interpreter' cs x (y - 1) result
+interpreter' ("right":cs) x y result = interpreter' cs (x + 1) y result
+interpreter' ("left":cs) x y result = interpreter' cs (x - 1) y result
+interpreter' ("printY":cs) x y result = interpreter' cs x y (show y:result)
+interpreter' ("printX":cs) x y result = interpreter' cs x y (show x:result)
