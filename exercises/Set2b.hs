@@ -96,7 +96,11 @@ leftpad s x = if length s < x then leftpad (' ' : s) x else s
 -- * you'll probably need a recursive helper function
 
 countdown :: Integer -> String
-countdown = todo
+countdown x = countdownHelper x "Ready! "
+
+countdownHelper :: Integer -> String -> String 
+countdownHelper x s = if x > 0 then countdownHelper (x - 1) (s ++ show x ++ "... ") else s ++ "Liftoff!"
+
 
 ------------------------------------------------------------------------------
 -- Ex 6: implement the function smallestDivisor that returns the
@@ -113,8 +117,11 @@ countdown = todo
 --
 -- Hint: remember the mod function!
 
+helperFunc :: Integer -> Integer -> Integer
+helperFunc i n = if n `mod` i == 0 then i else helperFunc (i + 1) n
+
 smallestDivisor :: Integer -> Integer
-smallestDivisor = todo
+smallestDivisor n = if even n then 2 else helperFunc 3 n
 
 ------------------------------------------------------------------------------
 -- Ex 7: implement a function isPrime that checks if the given number
@@ -123,7 +130,7 @@ smallestDivisor = todo
 -- Ps. 0 and 1 are not prime numbers
 
 isPrime :: Integer -> Bool
-isPrime = todo
+isPrime x = not (x == 0 || x == 1) && (smallestDivisor x == x)
 
 ------------------------------------------------------------------------------
 -- Ex 8: implement a function biggestPrimeAtMost that returns the
@@ -138,4 +145,6 @@ isPrime = todo
 --   biggestPrimeAtMost 10 ==> 7
 
 biggestPrimeAtMost :: Integer -> Integer
-biggestPrimeAtMost = todo
+biggestPrimeAtMost 0 = 0
+biggestPrimeAtMost 1 = 1
+biggestPrimeAtMost i = if isPrime i then i else biggestPrimeAtMost (i - 1)
