@@ -6,6 +6,7 @@
 module Set5a where
 
 import Mooc.Todo
+import Data.Maybe
 
 ------------------------------------------------------------------------------
 -- Ex 1: Define the type Vehicle that has four constructors: Bike,
@@ -13,6 +14,7 @@ import Mooc.Todo
 --
 -- The constructors don't need any fields.
 
+data Vehicle = Bike | Bus | Tram | Train
 
 ------------------------------------------------------------------------------
 -- Ex 2: Define the type BusTicket that can represent values like these:
@@ -20,6 +22,7 @@ import Mooc.Todo
 --  - MonthlyTicket "January"
 --  - MonthlyTicket "December"
 
+data BusTicket = SingleTicket | MonthlyTicket String
 
 ------------------------------------------------------------------------------
 -- Ex 3: Here's the definition for a datatype ShoppingEntry that
@@ -48,7 +51,7 @@ twoBananas = MkShoppingEntry "Banana" 1.1 2
 --   totalPrice twoBananas   ==> 2.2
 
 totalPrice :: ShoppingEntry -> Double
-totalPrice = todo
+totalPrice (MkShoppingEntry name price count) = price * fromIntegral count
 
 -- buyOneMore should increment the count in an entry by one
 --
@@ -56,7 +59,7 @@ totalPrice = todo
 --   buyOneMore twoBananas    ==> MkShoppingEntry "Banana" 1.1 3
 
 buyOneMore :: ShoppingEntry -> ShoppingEntry
-buyOneMore = todo
+buyOneMore (MkShoppingEntry name price count) = MkShoppingEntry name price (count + 1)
 
 ------------------------------------------------------------------------------
 -- Ex 4: define a datatype Person, which should contain the age (an
@@ -65,28 +68,28 @@ buyOneMore = todo
 -- Also define a Person value fred, and the functions getAge, getName,
 -- setAge and setName (see below).
 
-data Person = PersonUndefined
+data Person = MkPerson Int String
   deriving Show
 
 -- fred is a person whose name is Fred and age is 90
 fred :: Person
-fred = todo
+fred = MkPerson 90 "Fred"
 
 -- getName returns the name of the person
 getName :: Person -> String
-getName p = todo
+getName (MkPerson age name) = name
 
 -- getAge returns the age of the person
 getAge :: Person -> Int
-getAge p = todo
+getAge (MkPerson age name) = age
 
 -- setName takes a person and returns a new person with the name changed
 setName :: String -> Person -> Person
-setName name p = todo
+setName newName (MkPerson age name) = MkPerson age newName
 
 -- setAge does likewise for age
 setAge :: Int -> Person -> Person
-setAge age p = todo
+setAge newAge (MkPerson age name) = MkPerson newAge name
 
 ------------------------------------------------------------------------------
 -- Ex 5: define a datatype Position which contains two Int values, x
@@ -96,27 +99,27 @@ setAge age p = todo
 --   getY (up (up origin))    ==> 2
 --   getX (up (right origin)) ==> 1
 
-data Position = PositionUndefined
+data Position = MkPosition Int Int
 
 -- origin is a Position value with x and y set to 0
 origin :: Position
-origin = todo
+origin = MkPosition 0 0
 
 -- getX returns the x of a Position
 getX :: Position -> Int
-getX = todo
+getX (MkPosition x y) = x
 
 -- getY returns the y of a position
 getY :: Position -> Int
-getY = todo
+getY (MkPosition x y) = y
 
 -- up increases the y value of a position by one
 up :: Position -> Position
-up = todo
+up (MkPosition x y) = MkPosition x (y + 1)
 
 -- right increases the x value of a position by one
 right :: Position -> Position
-right = todo
+right (MkPosition x y) = MkPosition (x + 1) y
 
 ------------------------------------------------------------------------------
 -- Ex 6: Here's a datatype that represents a student. A student can
@@ -131,7 +134,9 @@ data Student = Freshman | NthYear Int | Graduated
 -- graduated student stays graduated even if he studies.
 
 study :: Student -> Student
-study = todo
+study Freshman = NthYear 1
+study (NthYear x) = if x >= 7 then Graduated else NthYear (x + 1)
+study Graduated = Graduated
 
 ------------------------------------------------------------------------------
 -- Ex 7: define a datatype UpDown that represents a counter that can
@@ -150,25 +155,28 @@ study = todo
 -- get (tick (tick (toggle (tick zero))))
 --   ==> -1
 
-data UpDown = UpDownUndefined1 | UpDownUndefined2
+data UpDown = Up Int | Down Int
 
 -- zero is an increasing counter with value 0
 zero :: UpDown
-zero = todo
+zero = Up 0
 
 -- get returns the counter value
 get :: UpDown -> Int
-get ud = todo
+get (Up count) = count
+get (Down count) = count
 
 -- tick increases an increasing counter by one or decreases a
 -- decreasing counter by one
 tick :: UpDown -> UpDown
-tick ud = todo
+tick (Up count) = Up (count + 1)
+tick (Down count) = Down (count - 1)
 
 -- toggle changes an increasing counter into a decreasing counter and
 -- vice versa
 toggle :: UpDown -> UpDown
-toggle ud = todo
+toggle (Up count) = Down count
+toggle (Down count) = Up count
 
 ------------------------------------------------------------------------------
 -- Ex 8: you'll find a Color datatype below. It has the three basic
@@ -198,7 +206,13 @@ data Color = Red | Green | Blue | Mix Color Color | Invert Color
   deriving Show
 
 rgb :: Color -> [Double]
-rgb col = todo
+
+rgb Red = [1, 0, 0]
+rgb Green = [0, 1, 0]
+rgb Blue = [0, 0, 1]
+
+rgb (Mix color1 color2) = [(((rgb color1) !! 0) + ((rgb color2) !! 0))/2,  (((rgb color1) !! 1) + ((rgb color2) !! 1))/2, (((rgb color1) !! 2) + ((rgb color2) !! 2))/2]
+rgb (Invert color) = [1 - ((rgb color) !! 0), 1 - ((rgb color) !! 1), 1 - ((rgb color) !! 2)]
 
 ------------------------------------------------------------------------------
 -- Ex 9: define a parameterized datatype OneOrTwo that contains one or
@@ -208,6 +222,7 @@ rgb col = todo
 --   One True         ::  OneOrTwo Bool
 --   Two "cat" "dog"  ::  OneOrTwo String
 
+data OneOrTwo a = One a | Two a a
 
 ------------------------------------------------------------------------------
 -- Ex 10: define a recursive datatype KeyVals for storing a set of
@@ -228,14 +243,16 @@ rgb col = todo
 -- Also define the functions toList and fromList that convert between
 -- KeyVals and lists of pairs.
 
-data KeyVals k v = KeyValsUndefined
+data KeyVals k v = Empty | Pair k v (KeyVals k v)
   deriving Show
 
 toList :: KeyVals k v -> [(k,v)]
-toList = todo
+toList Empty = []
+toList (Pair k v kv) = (k, v):(toList kv)
 
 fromList :: [(k,v)] -> KeyVals k v
-fromList = todo
+fromList [] = Empty
+fromList (e:l) = Pair (fst e) (snd e) (fromList l)
 
 ------------------------------------------------------------------------------
 -- Ex 11: The data type Nat is the so called Peano
@@ -252,10 +269,13 @@ data Nat = Zero | PlusOne Nat
   deriving (Show,Eq)
 
 fromNat :: Nat -> Int
-fromNat n = todo
+fromNat Zero = 0
+fromNat (PlusOne n) = fromNat n + 1
 
 toNat :: Int -> Maybe Nat
-toNat z = todo
+toNat z | z < 0 = Nothing
+toNat 0 = Just Zero
+toNat z = Just (PlusOne ( fromJust (toNat (z - 1))))
 
 ------------------------------------------------------------------------------
 -- Ex 12: While pleasingly simple in its definition, the Nat datatype is not
@@ -315,10 +335,16 @@ inc (O b) = I b
 inc (I b) = O (inc b)
 
 prettyPrint :: Bin -> String
-prettyPrint = todo
+prettyPrint End = ""
+prettyPrint (O b) = '0':prettyPrint b
+prettyPrint (I b) = '1':prettyPrint b
 
 fromBin :: Bin -> Int
-fromBin = todo
+fromBin End = 0
+fromBin (O b) = 2 * fromBin b
+fromBin (I b) = 1 + 2 * fromBin b
 
 toBin :: Int -> Bin
-toBin = todo
+toBin 1 = I End
+toBin 0 = O End
+toBin x = if mod x 2 == 1 then I (toBin (div x 2)) else O (toBin (div x 2))
